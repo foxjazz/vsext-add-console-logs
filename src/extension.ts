@@ -26,12 +26,10 @@ export function activate(context: vscode.ExtensionContext) {
 		if (editor) {
 			let document = editor.document;
 			
-			let skip = false;
-			let startFn = 0;
 			let readText = document.getText();
 			let tracking = 0;
 			let lines = mysplit(readText, "\n");
-			let ch:Checked = {track: tracking, check: false, fn: "" }
+			let ch:Checked = {track: tracking, check: false, fn: "" };
 			for(let idx = 0; idx < lines.length; idx++ ){
 				let line = lines[idx];
 				if(line.length < 2){
@@ -69,6 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	context.subscriptions.push(disposable);
 }
+
 function mysplit(base: string, delim: string): string [] {
 	let list = [];
 	let idr = base.indexOf("\n");
