@@ -13,20 +13,21 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "addconlog" is now active!');
-
+	let fileName = "";
+	let readText = "";
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand('extension.CreateConsoleLogs', () => {
 		// The code you place here will be executed every time your command is executed
-		let fs = require('fs');
+		
 		// Display a message box to the user
 		let editor = vscode.window.activeTextEditor;
 
 		if (editor) {
 			let document = editor.document;
-			
-			let readText = document.getText();
+			fileName = document.fileName;
+			readText = document.getText();
 			let tracking = 0;
 			let lines = mysplit(readText, "\n");
 			let ch:Checked = {track: tracking, check: false, fn: "" };
@@ -44,14 +45,24 @@ export function activate(context: vscode.ExtensionContext) {
 						let app = "console.log(\"" + ch.fn + "\");\r\n";
 
 						let os = getIndex(lines, ch.track, readText);
+						let p = document.positionAt(os);
+						editor.insertSnippet(app,p);
+						/*
+						editor.edit(editBuilder => {
+							editBuilder.insert(p, app);
+							
+						}); */
+						
 						let newText = insert(readText, os, app);
 						readText = newText;
 						lines = mysplit(readText,"\n");
 					}
 
 			}
-			fs.writeFile(document.fileName, readText);
+
 			
+			
+
 			//let selection = editor.selection;
 
 			// Get the word within the selection
@@ -60,10 +71,15 @@ export function activate(context: vscode.ExtensionContext) {
 			editor.edit(editBuilder => {
 				editBuilder.replace(selection, reversed);
 			});
- */		}
-
-		
+			
+ */		
+			let cb = editor.
+			fs.writeFile(fileName, readText, );			
+		}
+ 		
+ 		
 	});
+	
 	
 	context.subscriptions.push(disposable);
 }
@@ -125,6 +141,9 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 	if(l.indexOf("class") >= 0){
 		return ch;
 	}
+	if(l.indexOf("return") >= 0){
+		return ch;
+	}
 	if(l.indexOf("constructor") >= 0){
 		return ch;
 	}
@@ -150,8 +169,19 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 		return ch;
 	}
 	
-	ch.check = true;
+	
 	let startfn = l.indexOf("(");
+
+	if(startfn > 0){
+		// check for console.log next 2 lines
+		if(lines[tracking + 1].indexOf("console.log(") > 0){
+			return ch;
+		}
+		if(lines[tracking + 2].indexOf("console.log(") > 0){
+			return ch;
+		}
+	}
+	ch.check = true;
 	let ids = l.indexOf("private ");
 	if(ids > 0){
 		ids+= 8;
