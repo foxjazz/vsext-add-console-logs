@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand('extension.CreateConsoleLogs', () => {
 		// The code you place here will be executed every time your command is executed
-		
+
 		// Display a message box to the user
 		let editor = vscode.window.activeTextEditor;
 
@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 						let os = getIndex(lines, ch.track, readText);
 						let p = document.positionAt(os);
-						editor.insertSnippet(app,p);
+						// editor.insertSnippet(app,p);
 						/*
 						editor.edit(editBuilder => {
 							editBuilder.insert(p, app);
@@ -60,7 +60,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 			}
 
-			
+			fs.writeFile(document.fileName, readText, function(err){
+				let a = err;
+			});
+
 			
 
 			//let selection = editor.selection;
@@ -73,8 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 			
  */		
-			let cb = editor.
-			fs.writeFile(fileName, readText, );			
+					
 		}
  		
  		
@@ -147,6 +149,10 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 	if(l.indexOf("constructor") >= 0){
 		return ch;
 	}
+	if(l.indexOf("switch") >= 0){
+		return ch;
+	}
+
 	if(l.indexOf("if") >= 0){
 		return ch;
 	}
@@ -172,6 +178,7 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 	
 	let startfn = l.indexOf("(");
 
+
 	if(startfn > 0){
 		// check for console.log next 2 lines
 		if(lines[tracking + 1].indexOf("console.log(") > 0){
@@ -181,6 +188,17 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 			return ch;
 		}
 	}
+
+	let hasBracket = l.indexOf("{");
+	if(hasBracket < 0)
+	{
+		hasBracket = lines[tracking + 1].indexOf("{");
+		if(hasBracket < 0)
+		{
+			return ch;
+		}
+	}
+
 	ch.check = true;
 	let ids = l.indexOf("private ");
 	if(ids > 0){
