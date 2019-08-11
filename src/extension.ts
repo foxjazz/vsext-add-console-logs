@@ -36,58 +36,27 @@ export function activate(context: vscode.ExtensionContext) {
 				if(line.length < 2){
 					continue;
 				}
-					ch = check(line, idx, lines);
-					
+				ch = check(line, idx, lines);
+				idx = ch.track;
+				if(ch.check){
+					ch.track += 1;
 					idx = ch.track;
-					if(ch.check){
-						ch.track += 1;
-						idx = ch.track;
-						let app = "console.log(\"" + ch.fn + "\");\r\n";
-						// editor.insertSnippet(app,p);
-						/*
-						editor.edit(editBuilder => {
-							editBuilder.insert(p, app);
-							
-						}); */
-						lines.splice(ch.track, 0, app);
-						let test = getTest(lines,ch.track);
-						console.log(test);
-					}
+					let app = "\tconsole.log(\"" + ch.fn + "\");\r\n";
 
+					lines.splice(ch.track, 0, app);
+//					let test = getTest(lines,ch.track);
+//					console.log(test);
+				}
 			}
-			let outText = puttogether(lines);
+			let outText = lines.join("");
 			fs.writeFile(document.fileName, outText, function(err){
-				let a = err;
+				console.log(err);
 			});
-
-			
-
-			//let selection = editor.selection;
-
-			// Get the word within the selection
-/* 			let word = document.getText(selection);
-			let reversed = word.split('').reverse().join('');
-			editor.edit(editBuilder => {
-				editBuilder.replace(selection, reversed);
-			});
-			
- */		
-					
 		}
- 		
- 		
 	});
-	
-	
 	context.subscriptions.push(disposable);
 }
-function puttogether(lines: string[]): string{
-	let s = "";
-	for(let i = 0; i < lines.length; i++){
-		s += lines[i];
-	}
-	return s;
-}
+
 function getTest(lines: string[], idx: number): string[]{
 	if (idx > 3){
 		idx-=3;
