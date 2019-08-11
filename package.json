@@ -14,10 +14,12 @@
     ],
     "main": "./out/extension.js",
     "contributes": {
-        "commands": [{
-            "command": "extension.CreateConsoleLogs",
-            "title": "Add console logs"
-        }]
+        "commands": [
+            {
+                "command": "extension.CreateConsoleLogs",
+                "title": "Add console logs"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

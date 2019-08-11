@@ -19,7 +19,6 @@ export function activate(context: vscode.ExtensionContext) {
 	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand('extension.CreateConsoleLogs', () => {
 		// The code you place here will be executed every time your command is executed
-		let fs = require('fs');
 		// Display a message box to the user
 		let editor = vscode.window.activeTextEditor;
 
@@ -50,7 +49,9 @@ export function activate(context: vscode.ExtensionContext) {
 					}
 
 			}
-			fs.writeFile(document.fileName, readText);
+			fs.writeFile(document.fileName, readText, function(err){
+				let a = err;
+			});
 			
 			//let selection = editor.selection;
 
@@ -128,6 +129,10 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 	if(l.indexOf("constructor") >= 0){
 		return ch;
 	}
+	if(l.indexOf("switch") >= 0){
+		return ch;
+	}
+
 	if(l.indexOf("if") >= 0){
 		return ch;
 	}
@@ -150,8 +155,19 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 		return ch;
 	}
 	
-	ch.check = true;
+	
 	let startfn = l.indexOf("(");
+	let hasBracket = l.indexOf("{");
+	if(hasBracket < 0)
+	{
+		hasBracket = lines[tracking + 1].indexOf("{");
+		if(hasBracket < 0)
+		{
+			return ch;
+		}
+	}
+	
+	ch.check = true;
 	let ids = l.indexOf("private ");
 	if(ids > 0){
 		ids+= 8;
