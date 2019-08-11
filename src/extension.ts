@@ -43,24 +43,20 @@ export function activate(context: vscode.ExtensionContext) {
 						ch.track += 1;
 						idx = ch.track;
 						let app = "console.log(\"" + ch.fn + "\");\r\n";
-
-						let os = getIndex(lines, ch.track, readText);
-						let p = document.positionAt(os);
 						// editor.insertSnippet(app,p);
 						/*
 						editor.edit(editBuilder => {
 							editBuilder.insert(p, app);
 							
 						}); */
-						
-						let newText = insert(readText, os, app);
-						readText = newText;
-						lines = mysplit(readText,"\n");
+						lines.splice(ch.track, 0, app);
+						let test = getTest(lines,ch.track);
+						console.log(test);
 					}
 
 			}
-
-			fs.writeFile(document.fileName, readText, function(err){
+			let outText = puttogether(lines);
+			fs.writeFile(document.fileName, outText, function(err){
 				let a = err;
 			});
 
@@ -85,7 +81,30 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	context.subscriptions.push(disposable);
 }
+function puttogether(lines: string[]): string{
+	let s = "";
+	for(let i = 0; i < lines.length; i++){
+		s += lines[i];
+	}
+	return s;
+}
+function getTest(lines: string[], idx: number): string[]{
+	if (idx > 3){
+		idx-=3;
+	}
+	else{
+		idx = 0;
+	}
+	let a = [];
+	for(let i = 0; i < 6; i++){
+		if(lines[idx] !== undefined){
+			a.push(lines[idx]);
+			idx++;
+		}
+	}
 
+	return a;
+}
 function mysplit(base: string, delim: string): string [] {
 	let list = [];
 	let idr = base.indexOf("\n");
@@ -135,8 +154,26 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 				return ch;
 			}
 		}
-		
 	}
+	if(l.indexOf("namespace") >= 0){
+		let bc  = 0;
+		while(ch.track < lines.length ){
+			let ll = lines[ch.track];
+			if(ll.indexOf("{") >= 0){
+				bc+=1;
+			}
+			if(ll.indexOf("}") >= 0){
+				bc-=1;
+				if(bc === 0){
+					ch.track +=1;
+					return ch;
+				}
+			}
+			ch.track += 1;
+			
+		}
+	}
+	
 	if(l.indexOf("//") >= 0){
 		return ch;
 	}
