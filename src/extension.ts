@@ -41,11 +41,14 @@ export function activate(context: vscode.ExtensionContext) {
 				if(ch.check){
 					ch.track += 1;
 					idx = ch.track;
-					let app = "\tconsole.log(\"" + ch.fn + "\");\r\n";
-
+					let slfn = ch.fn.trim();
+					let app = "\tconsole.log(\"" + slfn + "\");\r\n";
+					if(slfn === "console.log"){
+						continue;
+					}
 					lines.splice(ch.track, 0, app);
-//					let test = getTest(lines,ch.track);
-//					console.log(test);
+					let test = getTest(lines,ch.track);
+					console.log(test);
 				}
 			}
 			let outText = lines.join("");
@@ -104,6 +107,8 @@ interface Checked {
 }
 function check(l: string, tracking: number, lines: string[]): Checked {
 	let ch:Checked = {track: tracking, check: false, fn: "" };
+	let test = getTest(lines,ch.track);
+	l = l.replace(" if(", " if (");
 	if(l.indexOf("interface") >= 0){
 		while(ch.track < lines.length){
 			let ll = lines[ch.track];
@@ -124,7 +129,7 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 			}
 		}
 	}
-	if(l.indexOf("namespace") >= 0){
+	if(l.indexOf(" namespace") >= 0){
 		let bc  = 0;
 		while(ch.track < lines.length ){
 			let ll = lines[ch.track];
@@ -142,39 +147,114 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 			
 		}
 	}
-	
+	if(l.indexOf(" if (") >= 0){
+		let bc  = 0;
+		while(ch.track < lines.length ){
+			let ll = lines[ch.track];
+			if(ll.indexOf("{") >= 0){
+				bc+=1;
+			}
+			if(ll.indexOf("}") >= 0){
+				bc-=1;
+				if(bc === 0){
+					ch.track +=1;
+					return ch;
+				}
+			}
+			ch.track += 1;
+			if(bc === 0)
+			{
+				return ch;
+			}
+		}
+	}
+	if(l.indexOf(" else if(") >= 0){
+		let bc  = 0;
+		while(ch.track < lines.length ){
+			let ll = lines[ch.track];
+			if(ll.indexOf("{") >= 0){
+				bc+=1;
+			}
+			if(ll.indexOf("}") >= 0){
+				bc-=1;
+				if(bc === 0){
+					ch.track +=1;
+					return ch;
+				}
+			}
+			ch.track += 1;
+			if(bc === 0)
+			{
+				return ch;
+			}
+		}
+	}
+	if(l.indexOf(" else") >= 0){
+		let bc  = 0;
+		while(ch.track < lines.length ){
+			let ll = lines[ch.track];
+			if(ll.indexOf("{") >= 0){
+				bc+=1;
+			}
+			if(ll.indexOf("}") >= 0){
+				bc-=1;
+				if(bc === 0){
+					ch.track +=1;
+					return ch;
+				}
+			}
+			ch.track += 1;
+			if(bc === 0)
+			{
+				return ch;
+			}
+		}
+	}
+	if(l.indexOf(" catch") >= 0){
+		let bc  = 0;
+		while(ch.track < lines.length ){
+			let ll = lines[ch.track];
+			if(ll.indexOf("{") >= 0){
+				bc+=1;
+			}
+			if(ll.indexOf("}") >= 0){
+				bc-=1;
+				if(bc === 0){
+					ch.track +=1;
+					return ch;
+				}
+			}
+			ch.track += 1;
+			
+		}
+	}
 	if(l.indexOf("//") >= 0){
 		return ch;
 	}
-	if(l.indexOf("class") >= 0){
+	if(l.indexOf(" class") >= 0){
 		return ch;
 	}
-	if(l.indexOf("return") >= 0){
+	if(l.indexOf(" return") >= 0){
 		return ch;
 	}
-	if(l.indexOf("constructor") >= 0){
+	if(l.indexOf(" constructor") >= 0){
 		return ch;
 	}
-	if(l.indexOf("switch") >= 0){
+	if(l.indexOf(" switch") >= 0){
 		return ch;
 	}
 
-	if(l.indexOf("if") >= 0){
+
+	if(l.indexOf(" for") >= 0){
 		return ch;
 	}
-	if(l.indexOf("for") >= 0){
+	if(l.indexOf(" while") >= 0){
 		return ch;
 	}
-	if(l.indexOf("while") >= 0){
+	if(l.indexOf(" const") >= 0){
 		return ch;
 	}
-	if(l.indexOf("=") >= 0){
-		return ch;
-	}
-	if(l.indexOf("const") >= 0){
-		return ch;
-	}
-	if(l.indexOf("let") >= 0){
+	if(l.indexOf(" let") >= 0){
 		return ch;
 	}
 	if(l.indexOf("(") < 1){
@@ -183,7 +263,10 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 	
 	
 	let startfn = l.indexOf("(");
-
+	let eq = l.indexOf("=");
+	if(eq < startfn && eq > 0){  //only return assignment ops
+		return ch;
+	}
 
 	if(startfn > 0){
 		// check for console.log next 2 lines
