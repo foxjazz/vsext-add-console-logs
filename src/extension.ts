@@ -109,6 +109,7 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 	let ch:Checked = {track: tracking, check: false, fn: "" };
 	let test = getTest(lines,ch.track);
 	l = l.replace(" if(", " if (");
+	l = l.replace("\t", " ");
 	if(l.indexOf("interface") >= 0){
 		while(ch.track < lines.length){
 			let ll = lines[ch.track];
@@ -228,6 +229,42 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 			
 		}
 	}
+	if(l.indexOf(" const") >= 0){
+		let bc  = 0;
+		while(ch.track < lines.length ){
+			let ll = lines[ch.track];
+			if(ll.indexOf("{") >= 0){
+				bc+=1;
+			}
+			if(ll.indexOf("}") >= 0){
+				bc-=1;
+				if(bc === 0){
+					ch.track +=1;
+					return ch;
+				}
+			}
+			ch.track += 1;
+			
+		}
+	}
+	if(l.indexOf("@Component") >= 0){
+		let bc  = 0;
+		while(ch.track < lines.length ){
+			let ll = lines[ch.track];
+			if(ll.indexOf("{") >= 0){
+				bc+=1;
+			}
+			if(ll.indexOf("}") >= 0){
+				bc-=1;
+				if(bc === 0){
+					ch.track +=1;
+					return ch;
+				}
+			}
+			ch.track += 1;
+			
+		}
+	}
 	if(l.indexOf("//") >= 0){
 		return ch;
 	}
@@ -288,6 +325,9 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 		}
 	}
 
+	if(lines[tracking + 1].indexOf(".subscribe")){
+		tracking += 1;
+	}
 	ch.check = true;
 	let ids = l.indexOf("private ");
 	if(ids > 0){
@@ -304,13 +344,20 @@ function check(l: string, tracking: number, lines: string[]): Checked {
 	}
 	let firstPart = l.substring(0, startfn);
 	ch.fn = firstPart.replace(" ", "");
-	if(l.indexOf("{")){	
+	if(l.indexOf("{") >= 0){	
 		return ch;
 	}
-	let ll = lines[tracking + 1];
-	if(ll.indexOf("{")){
-		ch.track += 1;
+	let t = 0;
+	let idx = ch.track;
+	while(true){  //need to find start of function to place the log.
+		t += 1;
+		let ll = lines[idx + t];
+		if(ll.indexOf("{") >= 0){
+			ch.track += t;
+			break;
+		}
 	}
+	
 
 	return ch;
 
